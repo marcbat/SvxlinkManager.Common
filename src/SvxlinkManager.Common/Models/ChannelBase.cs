@@ -6,7 +6,7 @@ using System.Text;
 
 namespace SvxlinkManager.Common.Models
 {
-  public abstract class ChannelBase
+  public class ChannelBase
   {
     public int Id { get; set; }
 
@@ -27,6 +27,6 @@ namespace SvxlinkManager.Common.Models
     }
 
     [NotMapped]
-    public abstract Dictionary<string, string> TrackProperties { get; }
+    public virtual Dictionary<string, string> TrackProperties { get; }
   }
 }
