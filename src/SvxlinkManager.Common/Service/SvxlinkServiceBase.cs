@@ -178,8 +178,8 @@ namespace SvxlinkManager.Common.Service
 
       if (s.Contains("Host not found"))
       {
-        telemetry.TrackTrace($"Impossible de se connecter au salon {channel.Name}. <br/> Server {channel.Host} introuvable.", SeverityLevel.Error, channel.TrackProperties);
-        Error?.Invoke("Echec de la connexion.", $"Impossible de se connecter au salon {channel.Name}. <br/> Server {channel.Host} introuvable.");
+        telemetry.TrackTrace($"Impossible de se connecter au salon {channel.Name}. <br/> Server introuvable.", SeverityLevel.Error, channel.TrackProperties);
+        Error?.Invoke("Echec de la connexion.", $"Impossible de se connecter au salon {channel.Name}. <br/> Server introuvable.");
         return;
       }
     }

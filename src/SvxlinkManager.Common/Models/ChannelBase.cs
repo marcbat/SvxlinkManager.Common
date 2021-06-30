@@ -13,11 +13,11 @@ namespace SvxlinkManager.Common.Models
     [Required]
     public string Name { get; set; }
 
-    [Required]
-    public string Host { get; set; }
+    //[Required]
+    //public string Host { get; set; }
 
-    [Required]
-    public string CallSign { get; set; }
+    //[Required]
+    //public string CallSign { get; set; }
 
     public int Dtmf { get; set; }
 
