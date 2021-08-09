@@ -69,6 +69,15 @@ namespace SvxlinkManager.Common.Service
     /// <value>connected nodes</value>
     public List<Node> Nodes { get; set; } = new List<Node>();
 
+    /// <summary>
+    /// Starts svxlink.
+    /// </summary>
+    /// <param name="reflector">The reflector.</param>
+    /// <param name="runAsDaemon">Start the SvxReflector server as a daemon.</param>
+    /// <param name="logFile">Specify a log file to put all output into. Both stdout and stderr will be redirected to the log file.</param>
+    /// <param name="configFile">Specify which configuration file to use.</param>
+    /// <param name="pidFile">Specify a pid file to write the process ID into.</param>
+    /// <param name="runAs">Start SvxReflector as the specified user. The switch to the new user will happen after the log and pid files has been opened.</param>
     public virtual void StartSvxlink(ChannelBase channel, bool runAsDaemon = false, string logFile = null, string configFile = null, string pidFile = null, string runAs = null)
     {
       var parameters = new List<string>();
@@ -195,6 +204,15 @@ namespace SvxlinkManager.Common.Service
       Disconnected?.Invoke();
     }
 
+    /// <summary>
+    /// Starts the reflector.
+    /// </summary>
+    /// <param name="reflector">The reflector.</param>
+    /// <param name="runAsDaemon">Start the SvxReflector server as a daemon.</param>
+    /// <param name="logFile">Specify a log file to put all output into. Both stdout and stderr will be redirected to the log file.</param>
+    /// <param name="configFile">Specify which configuration file to use.</param>
+    /// <param name="pidFile">Specify a pid file to write the process ID into.</param>
+    /// <param name="runAs">Start SvxReflector as the specified user. The switch to the new user will happen after the log and pid files has been opened.</param>
     public virtual void StartReflector(Reflector reflector, bool runAsDaemon = false, string logFile = null, string configFile = null, string pidFile = null, string runAs = null)
     {
       var parameters = new List<string>();
@@ -241,6 +259,15 @@ namespace SvxlinkManager.Common.Service
       reflectorshell.Start();
       reflectorshell.BeginErrorReadLine();
       reflectorshell.BeginOutputReadLine();
+    }
+
+    public virtual void StopReflector()
+    {
+      var pid = ExecuteCommand("pgrep -x svxreflector");
+      if (pid != null)
+        ExecuteCommand("pkill -TERM svxreflector");
+
+      reflectorshell?.Dispose();
     }
 
     /// <summary>
