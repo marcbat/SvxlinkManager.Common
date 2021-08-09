@@ -17,6 +17,7 @@ namespace SvxlinkManager.Common.Service
     private readonly ILogger<SvxlinkServiceBase> logger;
     private readonly TelemetryClient telemetry;
     private Process shell;
+    private Process reflectorshell;
 
     public SvxlinkServiceBase(ILogger<SvxlinkServiceBase> logger, TelemetryClient telemetry)
     {
@@ -70,31 +71,29 @@ namespace SvxlinkManager.Common.Service
 
     public virtual void StartSvxlink(ChannelBase channel, bool runAsDaemon = false, string logFile = null, string configFile = null, string pidFile = null, string runAs = null)
     {
-      var sb = new StringBuilder();
-
-      sb.Append("svxlink ");
+      var parameters = new List<string>();
 
       if (runAsDaemon)
-        sb.Append("--daemon ");
+        parameters.Add("--daemon");
 
       if (logFile != null)
-        sb.Append($"--logfile={logFile} ");
+        parameters.Add($"--logfile={logFile}");
 
       if (configFile != null)
-        sb.Append($"--config={configFile} ");
+        parameters.Add($"--config={configFile}");
 
       if (pidFile != null)
-        sb.Append($"--pidfile={pidFile} ");
+        parameters.Add($"--pidfile={pidFile}");
 
       if (runAs != null)
-        sb.Append($"--runasuser={runAs} ");
+        parameters.Add($"--runasuser={runAs}");
 
       shell = new Process()
       {
         StartInfo = new ProcessStartInfo
         {
           FileName = "/bin/bash",
-          Arguments = $"-c \"{sb}\"",
+          Arguments = $"-c \"svxlink {string.Join(" ", parameters)}\"",
           RedirectStandardOutput = true,
           StandardOutputEncoding = Encoding.UTF8,
           RedirectStandardError = true,
@@ -194,6 +193,54 @@ namespace SvxlinkManager.Common.Service
 
       Nodes.Clear();
       Disconnected?.Invoke();
+    }
+
+    public virtual void StartReflector(Reflector reflector, bool runAsDaemon = false, string logFile = null, string configFile = null, string pidFile = null, string runAs = null)
+    {
+      var parameters = new List<string>();
+
+      if (runAsDaemon)
+        parameters.Add("--daemon");
+
+      if (logFile != null)
+        parameters.Add($"--logfile={logFile}");
+
+      if (configFile != null)
+        parameters.Add($"--config={configFile}");
+
+      if (pidFile != null)
+        parameters.Add($"--pidfile={pidFile}");
+
+      if (runAs != null)
+        parameters.Add($"--runasuser={runAs}");
+
+      reflectorshell = new Process()
+      {
+        StartInfo = new ProcessStartInfo
+        {
+          FileName = "/bin/bash",
+          Arguments = $"-c \"svxreflector {string.Join(" ", parameters)}\"",
+          RedirectStandardOutput = true,
+          StandardOutputEncoding = Encoding.UTF8,
+          RedirectStandardError = true,
+          StandardErrorEncoding = Encoding.UTF8,
+          UseShellExecute = false,
+          CreateNoWindow = true,
+        }
+      };
+      reflectorshell.EnableRaisingEvents = true;
+      reflectorshell.ErrorDataReceived += (s, e) =>
+      {
+        logger.LogInformation(e.Data);
+      };
+      reflectorshell.OutputDataReceived += (s, e) =>
+      {
+        logger.LogInformation(e.Data);
+      };
+
+      reflectorshell.Start();
+      reflectorshell.BeginErrorReadLine();
+      reflectorshell.BeginOutputReadLine();
     }
 
     /// <summary>
