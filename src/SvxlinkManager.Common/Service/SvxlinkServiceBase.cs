@@ -9,6 +9,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 
 using SvxlinkManager.Common.Models;
+using System.IO;
 
 namespace SvxlinkManager.Common.Service
 {
@@ -17,7 +18,7 @@ namespace SvxlinkManager.Common.Service
     private readonly ILogger<SvxlinkServiceBase> logger;
     private readonly TelemetryClient telemetry;
     private Process shell;
-    private Process reflectorshell;
+    private readonly Dictionary<int, Process> reflectorshells = new Dictionary<int, Process>();
 
     public SvxlinkServiceBase(ILogger<SvxlinkServiceBase> logger, TelemetryClient telemetry)
     {
@@ -232,7 +233,7 @@ namespace SvxlinkManager.Common.Service
       if (runAs != null)
         parameters.Add($"--runasuser={runAs}");
 
-      reflectorshell = new Process()
+      var reflectorshell = new Process()
       {
         StartInfo = new ProcessStartInfo
         {
@@ -259,15 +260,23 @@ namespace SvxlinkManager.Common.Service
       reflectorshell.Start();
       reflectorshell.BeginErrorReadLine();
       reflectorshell.BeginOutputReadLine();
+
+      reflectorshells.Add(reflector.Id, reflectorshell);
     }
 
-    public virtual void StopReflector()
+    public virtual void StopReflector(Reflector reflector)
     {
-      var pid = ExecuteCommand("pgrep -x svxreflector");
-      if (pid != null)
-        ExecuteCommand("pkill -TERM svxreflector");
+      var pid = File.ReadAllText($"/var/run/reflector-{reflector.Id}.pid");
 
-      reflectorshell?.Dispose();
+      if (pid != null)
+        ExecuteCommand($"kill {pid}");
+
+      if (!reflectorshells.ContainsKey(reflector.Id))
+        return;
+
+      reflectorshells[reflector.Id].Dispose();
+
+      reflectorshells.Remove(reflector.Id);
     }
 
     /// <summary>
